@@ -1,0 +1,37 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "energy-ts-diffusion"
+version = "1.0.0"
+description = ""
+license = "Apache-2.0"
+dependencies = [
+    "flwr[simulation]>=1.18.0",
+    "flwr-datasets[vision]>=0.5.0",
+    "torch==2.5.1",
+    "torchvision==0.20.1",
+    "darts"
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["."]
+
+[tool.flwr.app]
+publisher = "naman"
+
+[tool.flwr.app.components]
+serverapp = "energy_ts_diffusion.server_app:app"
+clientapp = "energy_ts_diffusion.client_app:app"
+
+[tool.flwr.app.config]
+num-server-rounds = 8
+fraction-fit = 0.005
+local-epochs = 3
+
+[tool.flwr.federations]
+default = "local-simulation"
+
+[tool.flwr.federations.local-simulation]
+options.num-supernodes = 1000
