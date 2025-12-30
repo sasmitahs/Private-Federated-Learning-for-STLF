@@ -1,6 +1,6 @@
 import numpy as np
-from my_utils import normalize_to_unit_range, softmax
 
+from utils import normalize_to_unit_range, softmax
 # from typing import Tuple
 from typing import List, Tuple, Optional, Dict
 def average_weights(weights_list, client_weights=None):

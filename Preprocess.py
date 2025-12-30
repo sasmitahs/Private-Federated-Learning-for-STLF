@@ -1,30 +1,16 @@
-import os
-import glob
-import pandas as pd
 import numpy as np
-from torch.utils.data import Dataset
-from darts import TimeSeries
-from sklearn.metrics import mean_absolute_error, mean_squared_error
-from torch.utils.data import DataLoader, TensorDataset
+import pandas as pd
 import torch
-
+from torch.utils.data import DataLoader, TensorDataset
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+from darts import TimeSeries
 
 def compute_metrics(y_true, y_pred):
-    """
-    Compute MAE, MSE, and RMSE between true and predicted values.
-    
-    Parameters:
-    - y_true (np.ndarray): True values
-    - y_pred (np.ndarray): Predicted values
-    
-    Returns:
-    - dict: {'MAE': ..., 'MSE': ..., 'RMSE': ...}
-    """
-    mae = mean_absolute_error(y_true, y_pred)
     mse = mean_squared_error(y_true, y_pred)
     rmse = np.sqrt(mse)
-    return {"MAE": mae, "MSE": mse, "RMSE": rmse}
-
+    mae = mean_absolute_error(y_true, y_pred)
+    r2 = r2_score(y_true, y_pred)
+    return mse, rmse, mae, r2
 
 def load_building_series(folder_path):
     all_files = glob.glob(os.path.join(folder_path, "*.csv"))
@@ -38,7 +24,6 @@ def load_building_series(folder_path):
 
     return series_list
 
-
 def split_series_list(series_list, train_ratio=0.75):
     train_series = []
     test_series = []
@@ -48,47 +33,31 @@ def split_series_list(series_list, train_ratio=0.75):
         test_series.append(test)
     return train_series, test_series
 
+def convert_timeseries_to_numpy(series, input_len, output_len):
+    """Convert a Darts TimeSeries to numpy arrays for input and output sequences."""
+    values = series.values()
+    if len(values) < input_len + output_len:
+        return np.array([]), np.array([])
 
-from typing import List, Tuple, Optional
+    X, y = [], []
+    for i in range(len(values) - input_len - output_len + 1):
+        X.append(values[i : i + input_len])
+        y.append(values[i + input_len : i + input_len + output_len, 0])  # Predict meter_reading
+    return np.array(X), np.array(y)
 
-def convert_timeseries_to_numpy(
-    series: TimeSeries,
-    input_len: int,
-    output_len: int,
-    drop_incomplete: bool = True
-) -> Tuple[np.ndarray, np.ndarray]:
-    """
-    Converts a single Darts TimeSeries into input-output pairs for supervised learning.
+def create_dataloader(X_ts, X_air_temp, X_primary_use, y, batch_size=32):
+    """Create a DataLoader from numpy arrays."""
+    # Debug tensor shapes
+    print(f"Creating DataLoader with shapes:")
+    print(f"X_ts shape: {X_ts.shape}")
+    print(f"X_air_temp shape: {X_air_temp.shape}")
+    print(f"X_primary_use shape: {X_primary_use.shape}")
+    print(f"y shape: {y.shape}")
 
-    Args:
-        series (TimeSeries): The input time series.
-        input_len (int): Length of input window.
-        output_len (int): Length of output window.
-        drop_incomplete (bool): If True, drops windows that can't fit input+output.
-
-    Returns:
-        Tuple[np.ndarray, np.ndarray]: Arrays (X, y) where:
-            - X shape: (num_samples, input_len, num_features)
-            - y shape: (num_samples, output_len, num_features)
-    """
-    values = series.values()  # shape: (T, D)
-    T = len(values)
-    max_i = T - input_len - output_len + 1
-
-    if drop_incomplete and max_i <= 0:
-        return np.empty((0, input_len, values.shape[1])), np.empty((0, output_len, values.shape[1]))
-
-    X_all, y_all = [], []
-
-    for i in range(max_i):
-        x_i = values[i : i + input_len]
-        y_i = values[i + input_len : i + input_len + output_len]
-        X_all.append(x_i)
-        y_all.append(y_i)
-
-    return np.array(X_all), np.array(y_all)
-
-
-def create_dataloader(X, y, batch_size=32):
-    dataset = TensorDataset(torch.tensor(X, dtype=torch.float32), torch.tensor(y, dtype=torch.float32))
+    dataset = TensorDataset(
+        torch.tensor(X_ts, dtype=torch.float32),
+        torch.tensor(X_air_temp, dtype=torch.float32),
+        torch.tensor(X_primary_use, dtype=torch.int64),  # Expect [batch_size, seq_len]
+        torch.tensor(y, dtype=torch.float32)
+    )
     return DataLoader(dataset, batch_size=batch_size, shuffle=True)
