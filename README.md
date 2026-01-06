@@ -1,8 +1,6 @@
-# Private-Federated-Learning-for-STLF
+# Federated Learning for Short-Term Load Forecasting (STLF)
 
-**Privacy-Preserving Federated Learning for Short-Term Load Forecasting (STLF)**
-
-This repository implements privacy-preserving federated learning approaches for **Short-Term Load Forecasting (STLF)** in electrical power systems. STLF involves predicting near-future electricity demand (load) at the building level.
+This repository implements federated learning approaches for **Short-Term Load Forecasting (STLF)** in electrical power systems. STLF involves predicting near-future electricity demand (load) at the building level.
 
 The project explores two main modeling paradigms:
 
