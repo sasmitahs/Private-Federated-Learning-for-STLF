@@ -7,7 +7,7 @@ The project explores two main modeling paradigms:
 - **Single-model approaches**: Standard deep learning models that take only historical meter readings as input (no additional covariates).
 - **Dual-model approaches**: Advanced models that accept dual inputs — historical time series data plus covariates (e.g., air temperature, primary use embedding, STL-decomposed components such as trend, seasonal, and residual).
 
-Federated learning strategies include **FedAvg**, **FedProx**, **SCAFFOLD**, clustering-based variants (e.g., DAS, Power-of-Choice), and random sampling baselines, with and without client clustering.
+Federated learning strategies include aggregation like **FedAvg**, **FedProx**, **SCAFFOLD**, sampling strategies (e.g., DAS, Power-of-Choice, Random), with and without client clustering.
 
 The codebase supports training, evaluation, baseline comparisons (e.g., weekly persistence, AutoARIMA), and comprehensive **ASHRAE-compliant** metric computation (MAE, RMSE, MAPE, SMAPE, NMAE, NMBE, NRMSE).
 
@@ -61,11 +61,11 @@ Handles data loading, STL decomposition, multi-channel feature creation, and dat
 Trains and saves centralized (global) dual models.
 
 **Various strategy scripts**  
-(e.g., `Newmodel-clustering-FedProx.py`, `NoClustering-FedProx.py`, `clustering-das.py`, `poc_fedprox_cluster.py`, `random_nocluster_fedprox.py`, etc.)  
-Implement federated learning simulations with different aggregation strategies (FedProx, SCAFFOLD, DAS clustering, Power-of-Choice, random sampling) on dual models, with/without client clustering.
+(e.g., `NoClustering-FedProx.py`, `clustering-das.py`, `poc_fedprox_cluster.py`, `random_nocluster_fedprox.py`, etc.)  
+Implement federated learning simulations with different combination strategies (FedProx, SCAFFOLD, DAS clustering, Power-of-Choice, random sampling) on dual models, with/without client clustering.
 
 **cluster_analysis.py**  
-Utilities for client clustering analysis (likely for heterogeneity assessment).
+Utilities for client clustering analysis.
 
 ## Files in `single model/` Folder
 
@@ -102,17 +102,11 @@ Defines single-input neural network architectures (e.g., GRU, LSTM, Simple CNN, 
 **Preprocess.py**  
 Data loading and preprocessing tailored for single-input models.
 
-**Strategy.py**  
-Base utilities for federated learning strategies in single-model setting.
-
-**classification_utils.py**  
-Utilities for client classification or clustering in single-model experiments.
-
 **global.py**  
 Trains centralized single models.
 
 **naive.py**  
-Simple naive baselines (e.g., persistence).
+Simple naive baselines
 
 **Various strategy scripts**  
 (e.g., `das-clustering.py`, `das-nocluster.py`, `das_cluster_fedprox.py`, `poc-clustering.py`, `randoms_nocluster.py`, etc.)  
@@ -136,9 +130,3 @@ All evaluation scripts compute both standard and ASHRAE-recommended metrics:
 
 Results are typically aggregated using the **median** across buildings for robustness against outliers.
 
-## Contributors
-
-- sasmitahs
-- samy101 (Pandarasamy Arjunan)
-
-Feel free to open issues, submit pull requests, or contribute improvements!
